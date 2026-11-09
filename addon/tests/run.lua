@@ -132,6 +132,28 @@ test("arrow: the target's plate leaves the screen, the arrow goes too", function
   clean(W)
 end)
 
+test("settings: arrow size and color; a live arrow beside the window while it's open", function()
+  local W, ns = game({ enemies = false })
+  ns.openOptions()
+  W.update(0.2)
+  eq(ns.arrow:IsShown(), true, "a preview arrow while the window is open")
+  local d = ns.optionsDebug()
+  d.ui.plus:Click("LeftButton", true)
+  d.ui.plus:Click("LeftButton", true)
+  eq(ns.db.arrowScale, 1.2, "bigger")
+  eq(ns.arrow.scale, 1.2, "the arrow grew")
+  for _ = 1, 20 do
+    d.ui.minus:Click("LeftButton", true)
+  end
+  eq(ns.db.arrowScale, 0.6, "smallest is 60%")
+  d.ui.swatches[3]:Click("LeftButton", true)
+  eq(ns.db.arrowColor, "green")
+  W.G.TargetpadOptions:Hide()
+  W.update(1)
+  eq(ns.arrow:IsShown(), false, "the preview goes with the window")
+  clean(W)
+end)
+
 test("settings: Set takes the next key or pad button into the game's bindings; Clear unbinds", function()
   local W, ns = game()
   ns.openOptions()

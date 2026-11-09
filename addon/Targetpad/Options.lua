@@ -4,7 +4,7 @@
 -- the same key under Targetpad. Out of combat only; the window closes in combat.
 local _, ns = ...
 
-local W, H, PAD = 440, 270, 18
+local W, H, PAD = 440, 410, 18
 local GOLD, WHITE = { 1, 0.82, 0 }, { 1, 1, 1 }
 local PAD_NAME = {
   PAD1 = "A",
@@ -88,6 +88,10 @@ local function refresh()
   setChosen(ui.key, capturing)
   for i, k in ipairs(ns.NAVS) do
     setChosen(ui.navs[i], ns.db.nav == k)
+  end
+  ui.size:SetText(math.floor((ns.db.arrowScale or 1) * 100 + 0.5) .. "%")
+  for i, k in ipairs(ns.COLORS) do
+    ui.swatches[i].ring:SetShown(ns.db.arrowColor == k)
   end
 end
 ns.refreshOptions = refresh
@@ -207,6 +211,53 @@ local function build()
     ui.navs[i] = b
   end
 
+  -- The arrow: its size and color. A live one shows beside the window.
+  local h3 = body:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+  h3:SetText("Arrow")
+  h3:SetPoint("TOPLEFT", PAD, -PAD - 170)
+  local sizeLabel = body:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+  sizeLabel:SetText("Size")
+  sizeLabel:SetPoint("TOPLEFT", PAD, -PAD - 206)
+  local function step(d)
+    ns.db.arrowScale = math.max(0.6, math.min(2, math.floor(((ns.db.arrowScale or 1) + d) * 10 + 0.5) / 10))
+    ns.styleArrow()
+    refresh()
+  end
+  local minus = redButton(body, 30, 26, "<")
+  minus:SetPoint("TOPLEFT", PAD + 90, -PAD - 200)
+  minus:SetScript("OnClick", function()
+    step(-0.1)
+  end)
+  ui.size = body:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
+  ui.size:SetPoint("LEFT", minus, "RIGHT", 10, 0)
+  ui.size:SetWidth(60)
+  local plus = redButton(body, 30, 26, ">")
+  plus:SetPoint("LEFT", minus, "RIGHT", 80, 0)
+  plus:SetScript("OnClick", function()
+    step(0.1)
+  end)
+  ui.minus, ui.plus = minus, plus
+  local colorLabel = body:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+  colorLabel:SetText("Color")
+  colorLabel:SetPoint("TOPLEFT", PAD, -PAD - 252)
+  ui.swatches = {}
+  for i, k in ipairs(ns.COLORS) do
+    local b = CreateFrame("Button", nil, body)
+    b:SetSize(30, 30)
+    b:SetPoint("TOPLEFT", PAD + 90 + (i - 1) * 40, -PAD - 244)
+    local fill = b:CreateTexture(nil, "ARTWORK")
+    fill:SetAllPoints()
+    fill:SetColorTexture(ns.COLOR[k][1], ns.COLOR[k][2], ns.COLOR[k][3], 1)
+    b.ring = ns.outline(b, b, 4, 2)
+    b.ring:SetColor(1, 1, 1, 1)
+    b:SetScript("OnClick", function()
+      ns.db.arrowColor = k
+      ns.styleArrow()
+      refresh()
+    end)
+    ui.swatches[i] = b
+  end
+
   -- While it waits for a button: the next key or pad button pressed.
   panel:SetScript("OnKeyDown", function(_, key)
     if not capturing then
@@ -240,10 +291,14 @@ local function build()
     panel:Hide()
   end)
 
-  panel:SetScript("OnShow", takeKeys)
+  panel:SetScript("OnShow", function()
+    takeKeys()
+    ns.stageExamples(true, panel)
+  end)
   panel:SetScript("OnHide", function()
     stopCapture()
     giveKeys()
+    ns.stageExamples(false)
   end)
   table.insert(UISpecialFrames, "TargetpadOptions")
 end

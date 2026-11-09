@@ -52,7 +52,18 @@ function ns.afterCombat(key, fn)
   end
 end
 
-local DEFAULTS = { nav = "dpad" }
+local DEFAULTS = { nav = "dpad", arrowScale = 1, arrowColor = "gold" }
+
+-- The arrow's colors, in the order the settings show them.
+ns.COLORS = { "gold", "red", "green", "blue", "purple", "white" }
+ns.COLOR = {
+  gold = { 1, 0.82, 0 },
+  red = { 1, 0.27, 0.22 },
+  green = { 0.35, 1, 0.4 },
+  blue = { 0.35, 0.65, 1 },
+  purple = { 0.78, 0.45, 1 },
+  white = { 1, 1, 1 },
+}
 
 function ns.setupDB()
   TargetpadDB = TargetpadDB or {}

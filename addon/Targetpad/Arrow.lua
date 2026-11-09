@@ -18,6 +18,7 @@ ns.arrow = arrow
 
 -- A chevron pointing down: two bars at 45 degrees meeting at the bottom,
 -- over a darker copy for an edge and a soft gold copy for a glow.
+local tinted = {} -- the glow and the face take the chosen color
 local function chevron(layer, sub, grow, r, g, b, a, blend)
   for _, side in ipairs({ -1, 1 }) do
     local t = arrow:CreateTexture(nil, layer, nil, sub)
@@ -29,11 +30,25 @@ local function chevron(layer, sub, grow, r, g, b, a, blend)
     t:SetSize(SIZE * 0.78 + grow, BAR + grow)
     t:SetPoint("CENTER", arrow, "CENTER", side * SIZE * 0.25, 0)
     pcall(t.SetRotation, t, side * math.pi / 4)
+    if r == nil then
+      table.insert(tinted, { t, a })
+    end
   end
 end
-chevron("BACKGROUND", 0, 14, 1, 0.82, 0, 0.25, "ADD")
-chevron("ARTWORK", 0, 4, 0.12, 0.07, 0, 1)
-chevron("ARTWORK", 1, 0, 1, 0.82, 0, 1)
+chevron("BACKGROUND", 0, 14, nil, nil, nil, 0.25, "ADD")
+chevron("ARTWORK", 0, 4, 0.08, 0.05, 0, 1)
+chevron("ARTWORK", 1, 0, nil, nil, nil, 1)
+
+-- Size and color from the settings.
+function ns.styleArrow()
+  local db = ns.db or {}
+  arrow:SetScale(db.arrowScale or 1)
+  local c = ns.COLOR and ns.COLOR[db.arrowColor or "gold"] or { 1, 0.82, 0 }
+  for _, it in ipairs(tinted) do
+    it[1]:SetVertexColor(c[1], c[2], c[3], it[2])
+  end
+end
+ns.on("PLAYER_LOGIN", ns.styleArrow)
 
 local held = false
 local fade, t = 0, 0
@@ -89,11 +104,16 @@ function ns.isHeld()
 end
 
 -- /tp shots with no enemy around: the arrow over an example spot in the
--- middle of the screen.
+-- middle of the screen. The settings window puts it beside itself (at).
 local example = CreateFrame("Frame", nil, holder)
 example:SetSize(120, 20)
-example:SetPoint("CENTER", UIParent, "CENTER", 0, 80)
-function ns.stageExamples(on)
+function ns.stageExamples(on, at)
+  example:ClearAllPoints()
+  if at then
+    example:SetPoint("LEFT", at, "RIGHT", 40, 0)
+  else
+    example:SetPoint("CENTER", UIParent, "CENTER", 0, 80)
+  end
   ns.stagedAt = on and example or nil
   if on then
     fade = 1
