@@ -5,6 +5,7 @@
 ## Version: 0.1.0
 ## SavedVariablesPerCharacter: TargetpadDB
 ## X-License: MIT
+## X-Curse-Project-ID: 1794071
 
 Core.lua
 Secure.lua
