@@ -66,6 +66,46 @@ function ns.selfTest()
     SecureHandlerExecute(ns.ctl, ns.TEST_RELEASE)
     check("letting go hides the arrow", not ns.isHeld())
     check("letting go gives the keys back", bound(navs[1][1]) ~= "TARGETNEARESTENEMY", bound(navs[1][1]))
+
+    -- The settings: the arrow's size and color buttons, and the preview.
+    ns.openOptions()
+    local d = ns.optionsDebug()
+    local before, color = ns.db.arrowScale, ns.db.arrowColor
+    ns.log(
+      "REPORT preview staged="
+        .. tostring(ns.stagedAt ~= nil)
+        .. " arrow parent shown="
+        .. tostring(ns.plateHolder:IsVisible())
+    )
+    d.ui.plus:Click()
+    check(
+      "> makes the arrow bigger",
+      (ns.db.arrowScale > (before or 1) + 0.05 or (before or 1) >= 2)
+        and math.abs(ns.arrow:GetScale() - ns.db.arrowScale) < 0.001,
+      tostring(before) .. " -> " .. tostring(ns.db.arrowScale) .. ", arrow " .. tostring(ns.arrow:GetScale())
+    )
+    check("the size shows", d.ui.size:GetText() == math.floor(ns.db.arrowScale * 100 + 0.5) .. "%", d.ui.size:GetText())
+    d.ui.minus:Click()
+    d.ui.swatches[2]:Click()
+    check(
+      "a swatch picks the color",
+      ns.db.arrowColor == "red" and d.ui.swatches[2].ring:IsShown(),
+      tostring(ns.db.arrowColor) .. ", ring " .. tostring(d.ui.swatches[2].ring:IsShown())
+    )
+    ns.db.arrowColor = color
+    ns.styleArrow()
+    local x, y = ns.arrow:GetCenter()
+    ns.log(
+      "REPORT arrow shown="
+        .. tostring(ns.arrow:IsShown())
+        .. " at "
+        .. tostring(x)
+        .. ","
+        .. tostring(y)
+        .. " alpha "
+        .. tostring(ns.arrow:GetAlpha())
+    )
+    d.panel:Hide()
   end)
   if not ok then
     ns.log("LUA ERROR " .. tostring(err))

@@ -144,6 +144,10 @@ function M.new()
     return self.shown
   end
   function Frame:Click(_, down)
+    -- Button:Click() from code runs OnClick, as in the game.
+    if down == nil then
+      down = true
+    end
     W.click(self, down)
   end
   function Frame:SetAlpha(a)
