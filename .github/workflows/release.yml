@@ -1,0 +1,86 @@
+# A tag v<version> releases Targetpad. Every check of ci.yml runs on the tagged commit
+# first. Then the zip goes to a GitHub Release and to CurseForge (project id in
+# `## X-Curse-Project-ID` of the TOC), with the notes of the version in
+# CHANGELOG.md. The CurseForge upload needs the secret CF_API_KEY. Without it,
+# the release still goes to GitHub. Every action is pinned to a commit. The
+# comment gives the tag.
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  # The tag, the TOC, and CHANGELOG.md must name the same version.
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - run: |
+          toc=$(awk '/^## Version:/ { print $3 }' addon/Targetpad/Targetpad.toc | tr -d '\r')
+          if [ "$GITHUB_REF_NAME" != "v$toc" ]; then
+            echo "error: tag $GITHUB_REF_NAME and Targetpad.toc $toc do not match" >&2
+            exit 1
+          fi
+      - run: scripts/changelog-section.sh "${GITHUB_REF_NAME#v}" > /dev/null
+
+  ci:
+    needs: version
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      # The packager ships only files that git tracks, so the addon folder gets a
+      # repo of its own with the tag of this run.
+      - name: Make the addon folder
+        run: |
+          dir=$RUNNER_TEMP/addon
+          mkdir -p "$dir"
+          cp -r addon/Targetpad/. "$dir/"
+          cp LICENSE "$dir/LICENSE"
+          scripts/changelog-section.sh "${GITHUB_REF_NAME#v}" > "$dir/CHANGELOG.md"
+          cat > "$dir/.pkgmeta" <<'META'
+          package-as: Targetpad
+          enable-nolib-creation: no
+          manual-changelog:
+            filename: CHANGELOG.md
+            markup-type: markdown
+          ignore:
+            - CHANGELOG.md
+          META
+          cd "$dir"
+          git init -q
+          git add -A
+          git -c user.name=release -c user.email=release@localhost commit -q -m "$GITHUB_REF_NAME"
+          git tag "$GITHUB_REF_NAME"
+          echo "ADDON_DIR=$dir" >> "$GITHUB_ENV"
+      - name: Pick the upload
+        id: upload
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+        run: |
+          if [ -n "$CF_API_KEY" ]; then
+            echo "args=" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::No CurseForge upload: the repo has no secret CF_API_KEY."
+            echo "args=-d" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: BigWigsMods/packager@e50a250f8705041e40f2fa1ddcb280a686d65aa0 # v2.6.1
+        with:
+          args: -t ${{ env.ADDON_DIR }} -r ${{ runner.temp }}/release ${{ steps.upload.outputs.args }}
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+      - name: Make the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          scripts/changelog-section.sh "${GITHUB_REF_NAME#v}" > "$RUNNER_TEMP/notes.md"
+          gh release create "$GITHUB_REF_NAME" "$RUNNER_TEMP"/release/*.zip --title "$GITHUB_REF_NAME" --notes-file "$RUNNER_TEMP/notes.md"

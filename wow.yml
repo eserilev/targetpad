@@ -1,0 +1,86 @@
+# The WoW API that Targetpad uses, for selene. Lua 5.1 plus these globals.
+# scripts/api-check.sh checks each name against the Forever client source.
+base: lua51
+globals:
+  BINDING_HEADER_TARGETPAD:
+    any: true
+  ButtonFrameTemplate_HideButtonBar:
+    any: true
+  C_NamePlate:
+    any: true
+  C_Timer:
+    any: true
+  ClearOverrideBindings:
+    any: true
+  CreateFrame:
+    any: true
+  date:
+    any: true
+  GetBindingAction:
+    any: true
+  GetBindingKey:
+    any: true
+  GetBindingText:
+    any: true
+  GetBuildInfo:
+    any: true
+  GetCurrentBindingSet:
+    any: true
+  geterrorhandler:
+    any: true
+  GetTime:
+    any: true
+  InCombatLockdown:
+    any: true
+  IsAltKeyDown:
+    any: true
+  IsControlKeyDown:
+    any: true
+  IsShiftKeyDown:
+    any: true
+  SaveBindings:
+    any: true
+  Screenshot:
+    any: true
+  SecureHandlerExecute:
+    any: true
+  SecureHandlerWrapScript:
+    any: true
+  SetBinding:
+    any: true
+  seterrorhandler:
+    any: true
+  SetOverrideBindingClick:
+    any: true
+  SLASH_TARGETPAD1:
+    any: true
+  SLASH_TARGETPAD2:
+    any: true
+  SlashCmdList:
+    any: true
+  TargetpadDB:
+    any: true
+  UIParent:
+    any: true
+  UISpecialFrames:
+    any: true
+  UnitCanAttack:
+    any: true
+  UnitCastingInfo:
+    any: true
+  UnitClassification:
+    any: true
+  UnitHealth:
+    any: true
+  UnitHealthMax:
+    any: true
+  UnitIsUnit:
+    any: true
+  UnitLevel:
+    any: true
+  UnitName:
+    any: true
+  wipe:
+    any: true
+  WorldFrame:
+    any: true

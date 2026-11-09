@@ -1,0 +1,33 @@
+# The checks of each push and pull request. Every action is pinned to a commit.
+# The comment gives the tag.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  # release.yml runs this file on the tagged commit before it publishes.
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      # Each tool has a pinned version, so a new release cannot break CI without a commit.
+      - uses: taiki-e/install-action@7623a79cdfecb99d681017af368ca353d9f49bb5 # v2
+        with:
+          tool: stylua@2.5.2,selene@0.31.0
+      - run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q luajit
+      # The format, the lint, and the tests in both bit modes.
+      - run: scripts/check.sh
+      # Every WoW name and event that Targetpad uses must be in the pinned client.
+      - run: scripts/wow-api.sh
+      # The release zip builds, and has every file that the TOC loads.
+      - run: scripts/package.sh

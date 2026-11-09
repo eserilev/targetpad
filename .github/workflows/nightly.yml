@@ -1,0 +1,33 @@
+# Blizzard patches the client without notice. This job checks Targetpad against the
+# newest commit of the forever branch, and opens an issue when it fails. Every
+# action is pinned to a commit. The comment gives the tag.
+name: nightly
+
+on:
+  schedule:
+    - cron: "23 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wow-api:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - run: scripts/wow-api.sh --latest
+      # One open issue collects every failed night, so a broken week makes no flood.
+      - name: Open an issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="The WoW API changed"
+          if [ -z "$(gh issue list --state open --search "\"$title\" in:title" --json number -q '.[].number')" ]; then
+            gh issue create --title "$title" --body "The nightly API check failed: $RUN. Run scripts/wow-api.sh --latest, fix what breaks, and then update the pinned commits in scripts/wow-api.sh."
+          fi

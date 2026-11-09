@@ -1,0 +1,5 @@
+std = "wow"
+
+[lints]
+# Healpad finds frames by name (KeyBars buttons, its own secure buttons), so it reads _G.
+global_usage = "allow"

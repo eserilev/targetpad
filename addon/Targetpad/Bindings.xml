@@ -1,0 +1,3 @@
+<Bindings>
+  <Binding name="CLICK TargetpadHold:LeftButton" header="TARGETPAD" category="ADDONS"></Binding>
+</Bindings>

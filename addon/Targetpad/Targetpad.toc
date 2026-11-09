@@ -1,0 +1,14 @@
+## Interface: 16001
+## Title: Targetpad
+## Notes: Hold a button, step through nearby enemies with the d-pad or a stick, let go. Made for controllers. /tp
+## Author: Eitan Seri-Levi
+## Version: 0.1.0
+## SavedVariablesPerCharacter: TargetpadDB
+## X-License: MIT
+
+Core.lua
+Secure.lua
+Plates.lua
+Options.lua
+Test.lua
+Showcase.lua
