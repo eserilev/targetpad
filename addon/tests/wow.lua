@@ -164,8 +164,11 @@ function M.new()
   function Frame:GetChecked()
     return self.checked
   end
-  function Frame:SetPoint(...)
+  function Frame:SetPoint(_, rel)
     protectedChange(self, "SetPoint")
+    if type(rel) == "table" then
+      self.anchor = rel
+    end
   end
   function Frame:ClearAllPoints()
     protectedChange(self, "ClearAllPoints")
@@ -545,8 +548,17 @@ function M.new()
     end
   end
   G.C_NamePlate = {
+    -- Any unit token works, as in the game ("target" finds its plate).
     GetNamePlateForUnit = function(u)
-      return W.plates[u]
+      if W.plates[u] then
+        return W.plates[u]
+      end
+      for k, p in pairs(W.plates) do
+        if W.units[u] ~= nil and W.units[k] == W.units[u] then
+          return p
+        end
+      end
+      return nil
     end,
   }
   -- Enemies nearest first, by nameplate unit; the game's next and previous

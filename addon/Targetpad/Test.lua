@@ -55,7 +55,7 @@ function ns.selfTest()
     end
     local navs = ns.navKeys()
     SecureHandlerExecute(ns.ctl, ns.TEST_PRESS)
-    check("holding shows the frames", ns.isHeld())
+    check("holding shows the arrow", ns.isHeld())
     check(
       "next steps to the next enemy",
       bound(navs[1][1]) == "TARGETNEARESTENEMY",
@@ -64,7 +64,7 @@ function ns.selfTest()
     check("previous steps back", bound(navs[5][1]) == "TARGETPREVIOUSENEMY", navs[5][1] .. "=" .. bound(navs[5][1]))
     check("the arrow keys step too", bound("RIGHT") == "TARGETNEARESTENEMY", bound("RIGHT"))
     SecureHandlerExecute(ns.ctl, ns.TEST_RELEASE)
-    check("letting go hides the frames", not ns.isHeld())
+    check("letting go hides the arrow", not ns.isHeld())
     check("letting go gives the keys back", bound(navs[1][1]) ~= "TARGETNEARESTENEMY", bound(navs[1][1]))
   end)
   if not ok then

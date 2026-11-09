@@ -2,12 +2,11 @@
 
 Target with a controller. Hold a button, step through nearby enemies, let go.
 
-- **Hold**: every nearby enemy gets a frame over its nameplate: level, name,
-  health, a cast bar, and a red dot when it's attacking you. With no enemy
-  targeted, the nearest one is.
+- **Hold**: a big gold arrow bobs over your target. With no enemy targeted,
+  the nearest one is. Nothing else is drawn, so it works with any nameplates.
 - **Step** with the d-pad, the right stick or the left stick (your choice), or
-  the arrow keys: next and previous enemy, in the game's own order. Your target
-  stands out; the rest dim.
+  the arrow keys: next and previous enemy, in the game's own order. The arrow
+  follows.
 - **Let go**: you keep the target, and the d-pad does what you bound again.
 
 `/tp` to pick the hold button and what steps. The hold button is a normal game

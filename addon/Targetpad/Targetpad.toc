@@ -8,7 +8,7 @@
 
 Core.lua
 Secure.lua
-Plates.lua
+Arrow.lua
 Options.lua
 Test.lua
 Showcase.lua

@@ -2,7 +2,7 @@
 package.path = "addon/tests/?.lua;" .. package.path
 local Wow = require("wow")
 
-local FILES = { "Core.lua", "Secure.lua", "Plates.lua", "Options.lua", "Test.lua", "Showcase.lua" }
+local FILES = { "Core.lua", "Secure.lua", "Arrow.lua", "Options.lua", "Test.lua", "Showcase.lua" }
 local DIR = "addon/Targetpad"
 
 local passed, failed = 0, 0
@@ -102,40 +102,32 @@ test("nav: the right stick, the left stick; a modifier held still steps", functi
   clean(W)
 end)
 
-test("frames: only while held; the target stands out, the rest dim; secret health goes to the bar", function()
+test("arrow: only while held, over the target's nameplate; it follows the target, and fades on release", function()
   local W, ns = game()
   W.combat = true
   W.update(0.5)
-  eq(next(ns.plateFrames), nil, "no frames before the hold")
+  eq(ns.arrow:IsShown(), false, "no arrow before the hold")
   W.key("PADLSHOULDER", true)
   W.update(0.3)
-  local f1, f2, f3 = ns.plateFrames.nameplate1, ns.plateFrames.nameplate2, ns.plateFrames.nameplate3
-  assert(f1 and f2 and f3, "a frame per enemy")
-  eq(f1.mark:IsShown(), true, "the target is marked")
-  eq(f2.mark:IsShown(), false)
-  eq(f1.scale, 1.15, "the target is larger")
-  assert(f2.alpha < 0.7, "the others dim")
-  eq(Wow.isSecret(f1.health.value), true, "secret health in the bar")
-  eq(f1.dot:IsShown(), true, "attacking you")
-  eq(f2.dot:IsShown(), false)
-  eq(f1.cast:IsShown(), true, "casting")
-  assert(f3.level.text:find("Skull"), "a skull for the elite")
-  eq(f2.level.text, "17")
+  eq(ns.arrow:IsShown(), true, "the arrow while held")
+  eq(ns.arrow.anchor, W.plates.nameplate1, "over the target's plate")
   W.tap("PADDRIGHT")
   W.update(0.2)
-  eq(f2.mark:IsShown(), true, "the mark moves with the target")
+  eq(ns.arrow.anchor, W.plates.nameplate2, "it moves with the target")
   W.key("PADLSHOULDER", false)
   W.update(1)
-  eq(next(ns.plateFrames), nil, "gone after the fade")
+  eq(ns.arrow:IsShown(), false, "gone after the fade")
   clean(W)
 end)
 
-test("a nameplate that leaves takes its frame", function()
+test("arrow: the target's plate leaves the screen, the arrow goes too", function()
   local W, ns = game()
   W.key("PADLSHOULDER", true)
   W.update(0.3)
-  W.fire("NAME_PLATE_UNIT_REMOVED", "nameplate2")
-  eq(ns.plateFrames.nameplate2, nil)
+  W.plates.nameplate1 = nil
+  W.fire("NAME_PLATE_UNIT_REMOVED", "nameplate1")
+  W.update(0.1)
+  eq(ns.arrow:IsShown(), false)
   W.key("PADLSHOULDER", false)
   clean(W)
 end)
