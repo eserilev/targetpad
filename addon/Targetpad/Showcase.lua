@@ -1,7 +1,10 @@
--- /tp shots: screenshots for the addon's page. Hides the game's interface,
--- keeps only Targetpad's frames, and takes a screenshot of the hold view
--- and of the settings window. Then puts everything back, even on an error.
--- Out of combat; stand near a few enemies, or it shows example frames.
+-- /tp shots: screenshots for the addon's page, taken while you play it.
+-- An addon can't pick a target, so you do: after /tp shots, hold your
+-- Targetpad button near enemies and step through them. Holding hides the
+-- game's interface (the arrow stays) and takes a screenshot; each new target
+-- takes another. Letting go brings the interface back and takes one of the
+-- settings window, then puts everything back. Combat or an error ends it,
+-- with everything put back.
 local _, ns = ...
 
 local function eff(f)
@@ -21,24 +24,9 @@ local function lift(f)
   f:SetScale(moved[f] * k)
 end
 
-local function anyEnemy()
-  local ok, plates = pcall(C_NamePlate.GetNamePlates)
-  if not ok or type(plates) ~= "table" then
-    return false
-  end
-  for _, plate in ipairs(plates) do
-    local unit = plate.namePlateUnitToken
-    local okA, yes = pcall(UnitCanAttack, "player", unit)
-    if unit and okA and yes then
-      return true
-    end
-  end
-  return false
-end
+local armed, shooting, count = false, false, 0
 
 local function restore()
-  pcall(SecureHandlerExecute, ns.ctl, ns.TEST_RELEASE)
-  ns.stageExamples(false)
   local panel = ns.optionsPanel and ns.optionsPanel()
   if panel then
     panel:Hide()
@@ -51,6 +39,42 @@ local function restore()
     moved[f] = nil
   end
   UIParent:Show()
+  armed, shooting = false, false
+end
+
+local function shot()
+  count = count + 1
+  pcall(Screenshot)
+end
+
+-- A moment after a change, so the arrow is drawn where it now belongs. Two
+-- changes at once (the hold picks a target as it starts) make one shot.
+local pending = 0
+local function shotSoon()
+  pending = pending + 1
+  local mine = pending
+  C_Timer.After(0.35, function()
+    if shooting and mine == pending then
+      shot()
+    end
+  end)
+end
+
+local function finish()
+  shooting = false
+  UIParent:Show()
+  local ok = pcall(function()
+    ns.openOptions()
+    lift(ns.optionsPanel())
+    UIParent:Hide()
+  end)
+  C_Timer.After(0.6, function()
+    if ok then
+      shot()
+    end
+    restore()
+    ns.say("done: " .. count .. " screenshots in your Screenshots folder.")
+  end)
 end
 
 function ns.showcase()
@@ -58,46 +82,48 @@ function ns.showcase()
     ns.say("after combat.")
     return
   end
-  local function shot()
-    pcall(Screenshot)
+  if not ns.holdKey() then
+    ns.say("set a hold button in /tp first.")
+    return
   end
-  local scenes = {
-    function()
+  armed, shooting, count = true, false, 0
+  ns.say(
+    "hold "
+      .. ns.keyLabel(ns.holdKey())
+      .. " near enemies and step through them: each target is a screenshot. Let go to finish."
+  )
+end
+
+-- The hold starts and ends the shoot; each target change while held is a shot.
+ns.ctl:HookScript("OnAttributeChanged", function(_, name, value)
+  if name ~= "state" or not armed then
+    return
+  end
+  if value == "held" and not shooting then
+    local ok = pcall(function()
       lift(ns.plateHolder)
       UIParent:Hide()
-      if anyEnemy() then
-        SecureHandlerExecute(ns.ctl, ns.TEST_PRESS)
-      else
-        ns.stageExamples(true)
-      end
-    end,
-    shot,
-    function()
-      SecureHandlerExecute(ns.ctl, ns.TEST_RELEASE)
-      ns.stageExamples(false)
-      ns.openOptions()
-      lift(ns.optionsPanel())
-    end,
-    shot,
-  }
-  ns.say("taking screenshots… hands off for a few seconds.")
-  local i = 0
-  local function step()
-    i = i + 1
-    local fn = scenes[i]
-    if not fn then
-      restore()
-      ns.say("done: 2 screenshots in your Screenshots folder.")
-      return
-    end
-    local ok, err = pcall(fn)
+    end)
     if not ok then
-      ns.log("SHOTS error: " .. tostring(err))
       restore()
-      ns.say("screenshots stopped: " .. tostring(err))
       return
     end
-    C_Timer.After(1.2, step)
+    shooting = true
+    shotSoon()
+  elseif value ~= "held" and shooting then
+    finish()
   end
-  step()
-end
+end)
+
+ns.on("PLAYER_TARGET_CHANGED", function()
+  if shooting then
+    shotSoon()
+  end
+end)
+
+-- Combat ends it at once, with the interface back.
+ns.on("PLAYER_REGEN_DISABLED", function()
+  if armed or shooting then
+    restore()
+  end
+end)
