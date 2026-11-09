@@ -69,7 +69,8 @@ local function finish()
     UIParent:Hide()
   end)
   C_Timer.After(0.6, function()
-    if ok then
+    -- Combat in the meantime put the interface back: no shot of it.
+    if ok and armed then
       shot()
     end
     restore()
