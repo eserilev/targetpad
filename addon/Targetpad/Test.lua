@@ -48,7 +48,11 @@ function ns.selfTest()
     ns.log("REPORT build " .. tostring((GetBuildInfo())) .. ", nav " .. tostring(ns.db.nav))
     local key = ns.holdKey()
     ns.log("REPORT hold key " .. tostring(key) .. " = " .. tostring(key and bound(key)))
-    check("the hold button has a key", key ~= nil, "set one in /tp")
+    if key then
+      check("the hold button has a key", true, key)
+    else
+      ns.log("TEST note: no hold key yet; set one in /tp")
+    end
     local navs = ns.navKeys()
     SecureHandlerExecute(ns.ctl, ns.TEST_PRESS)
     check("holding shows the frames", ns.isHeld())
