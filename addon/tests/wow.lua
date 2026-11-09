@@ -150,6 +150,28 @@ function M.new()
     end
     W.click(self, down)
   end
+  -- The game refuses a color with a missing part, so the fake does too.
+  local function color(what, r, g, b)
+    if type(r) ~= "number" or type(g) ~= "number" or type(b) ~= "number" then
+      error(
+        "Usage: " .. what .. "(r, g, b [, a]): got " .. tostring(r) .. ", " .. tostring(g) .. ", " .. tostring(b),
+        3
+      )
+    end
+  end
+  function Frame:SetVertexColor(r, g, b, a)
+    color("SetVertexColor", r, g, b)
+    self.vertex = { r, g, b, a }
+  end
+  function Frame:SetColorTexture(r, g, b)
+    color("SetColorTexture", r, g, b)
+  end
+  function Frame:SetTextColor(r, g, b)
+    color("SetTextColor", r, g, b)
+  end
+  function Frame:SetStatusBarColor(r, g, b)
+    color("SetStatusBarColor", r, g, b)
+  end
   function Frame:SetAlpha(a)
     self.alpha = plain(a)
   end

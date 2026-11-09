@@ -23,7 +23,8 @@ local function chevron(layer, sub, grow, r, g, b, a, blend)
   for _, side in ipairs({ -1, 1 }) do
     local t = arrow:CreateTexture(nil, layer, nil, sub)
     t:SetTexture("Interface\\Buttons\\WHITE8X8")
-    t:SetVertexColor(r, g, b, a)
+    -- The game wants four numbers: the tinted parts start gold.
+    t:SetVertexColor(r or 1, g or 0.82, b or 0, a)
     if blend then
       t:SetBlendMode(blend)
     end
