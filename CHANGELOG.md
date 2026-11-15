@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.1
 
 - Fix: stepping with a stick did nothing. Targetpad now turns on the game's stick-as-buttons setting.
 - While you hold with the right stick, the camera stays still.

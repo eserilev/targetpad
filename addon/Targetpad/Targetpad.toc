@@ -2,7 +2,7 @@
 ## Title: Targetpad
 ## Notes: Hold a button, step through nearby enemies with the d-pad or a stick, let go. Made for controllers. /tp
 ## Author: Eitan Seri-Levi
-## Version: 0.1.0
+## Version: 0.1.1
 ## SavedVariablesPerCharacter: TargetpadDB
 ## X-License: MIT
 ## X-Curse-Project-ID: 1794071
