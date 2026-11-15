@@ -6,6 +6,8 @@ globals:
     any: true
   ButtonFrameTemplate_HideButtonBar:
     any: true
+  C_CVar:
+    any: true
   C_NamePlate:
     any: true
   C_Timer:

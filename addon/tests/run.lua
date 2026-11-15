@@ -32,6 +32,9 @@ local function game(opts)
   W.units.player = { name = "Me", hp = 90, max = 100 }
   W.normalBinds.PADLSHOULDER = "CLICK TargetpadHold:LeftButton"
   W.normalBinds.PADDRIGHT = "ACTIONBUTTON5"
+  for k, v in pairs(opts.cvars or {}) do
+    W.cvars[k] = v
+  end
   local ns = W.load(DIR, FILES, opts.saved or { nav = opts.nav or "dpad" })
   if opts.enemies ~= false then
     W.addEnemy(
@@ -83,21 +86,27 @@ test("a living enemy target stays on the press; a dead one is replaced", functio
 end)
 
 test("nav: the right stick, the left stick; a modifier held still steps", function()
-  local W, ns = game({ nav = "rstick" })
+  local W, ns = game({ nav = "rstick", cvars = { GamePadCameraYawSpeed = "1.5", GamePadCameraPitchSpeed = "1" } })
+  eq(W.cvars.GamePadStickAxisButtons, "1", "the stick's pushes come as presses")
   W.combat = true
   W.key("PADLSHOULDER", true)
+  eq(W.cvars.GamePadCameraYawSpeed, "0", "the camera stays still while held")
+  eq(W.cvars.GamePadCameraPitchSpeed, "0")
   W.tap("PADRSTICKRIGHT")
   eq(targetName(W), "Defias Thug", "right stick")
   eq(W.secureBinds.PADDRIGHT, nil, "the d-pad isn't taken")
   W.tap("SHIFT-PADRSTICKRIGHT")
   eq(targetName(W), "Defias Highwayman", "with Shift held")
   W.key("PADLSHOULDER", false)
+  eq(W.cvars.GamePadCameraYawSpeed, "1.5", "the camera turns again")
+  eq(W.cvars.GamePadCameraPitchSpeed, "1")
   W.combat = false
   ns.db.nav = "lstick"
   ns.applyNav()
   W.key("PADLSHOULDER", true)
   W.tap("PADLSTICKLEFT")
   eq(targetName(W), "Defias Thug", "left stick")
+  eq(W.cvars.GamePadCameraYawSpeed, "1.5", "the left stick leaves the camera alone")
   W.key("PADLSHOULDER", false)
   clean(W)
 end)

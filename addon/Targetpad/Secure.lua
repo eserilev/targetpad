@@ -53,9 +53,70 @@ function ns.navKeys()
   return list
 end
 
+-- The game sends a stick's pushes as button presses (PADRSTICKRIGHT...)
+-- only with GamePadStickAxisButtons on: with a stick to step, it goes on.
+-- Unbound, those presses do nothing, so the stick still works as before.
+local function cvar(k)
+  local ok, v = pcall(C_CVar.GetCVar, k)
+  return ok and v or nil
+end
+local function setCVar(k, v)
+  local ok, err = pcall(C_CVar.SetCVar, k, v)
+  ns.log("cvar " .. k .. " = " .. tostring(v) .. (ok and "" or (" failed: " .. tostring(err))))
+  return ok
+end
+local function stickButtons()
+  if ns.db and ns.db.nav ~= "dpad" and cvar("GamePadStickAxisButtons") ~= "1" then
+    setCVar("GamePadStickAxisButtons", "1")
+  end
+end
+
+-- While you hold with the right stick, it doesn't turn the camera: its
+-- speeds go to 0 and come back when you let go (or at the next login, after
+-- a reload in the middle of a hold).
+local CAMERA = { "GamePadCameraYawSpeed", "GamePadCameraPitchSpeed" }
+local function freeCamera()
+  local saved = ns.db and ns.db.cameraSaved
+  if not saved then
+    return
+  end
+  ns.db.cameraSaved = nil
+  for _, k in ipairs(CAMERA) do
+    if saved[k] then
+      setCVar(k, saved[k])
+    end
+  end
+end
+local function stillCamera()
+  if not (ns.db and ns.db.nav == "rstick") or ns.db.cameraSaved then
+    return
+  end
+  local saved = {}
+  for _, k in ipairs(CAMERA) do
+    saved[k] = cvar(k)
+  end
+  if not saved[CAMERA[1]] then
+    return
+  end
+  ns.db.cameraSaved = saved
+  for _, k in ipairs(CAMERA) do
+    setCVar(k, "0")
+  end
+end
+ns.freeCamera = freeCamera
+hold:HookScript("PreClick", function(_, _, down)
+  if down then
+    stillCamera()
+  else
+    freeCamera()
+  end
+end)
+ns.on("PLAYER_LOGIN", freeCamera)
+
 -- Out of combat: tell the controller which keys to borrow.
 function ns.applyNav()
   ns.afterCombat("nav", function()
+    stickButtons()
     local list = ns.navKeys()
     for i, k in ipairs(list) do
       ctl:SetAttribute("nk" .. i, k[1])

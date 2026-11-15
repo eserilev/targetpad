@@ -405,6 +405,13 @@ function M.new()
   W.keyDownCvar = true -- the game's ActionButtonUseKeyDown
   function W.click(f, down)
     local message
+    -- PreClick runs first, for every click, as in the game.
+    if f.scripts.PreClick then
+      f.scripts.PreClick(f, "LeftButton", down)
+    end
+    for _, fn in ipairs(f.hooks.PreClick or {}) do
+      fn(f, "LeftButton", down)
+    end
     if f.wrap then
       local res, msg = runSnippet(f.wrap.pre, { owner = f.wrap.header }, f, "LeftButton", down)
       if res == false then
@@ -536,6 +543,10 @@ function M.new()
   G.C_CVar = {
     GetCVar = function(k)
       return W.cvars[k]
+    end,
+    SetCVar = function(k, v)
+      W.cvars[k] = tostring(v)
+      return true
     end,
   }
 

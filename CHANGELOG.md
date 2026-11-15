@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Fix: stepping with a stick did nothing. Targetpad now turns on the game's stick-as-buttons setting.
+- While you hold with the right stick, the camera stays still.
+
 ## 0.1.0
 
 - First version: hold a button and a gold arrow marks your target, step through them with the d-pad or a stick, let go to keep the target.
