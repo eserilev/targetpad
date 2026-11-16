@@ -18,13 +18,26 @@ hold:SetAttribute("type", "macro")
 hold:SetAttribute("macrotext", "/targetenemy [noharm][dead]")
 ns.hold = hold
 
+-- Back: the previous enemy, or with no living enemy targeted, the nearest
+-- one, as Tab does.
+local back = CreateFrame("Button", "TargetpadBack", UIParent, "SecureActionButtonTemplate")
+back:RegisterForClicks("AnyDown")
+back:SetAttribute("useOnKeyDown", true)
+back:SetAttribute("type", "macro")
+back:SetAttribute("macrotext", "/targetenemy [harm,nodead] 1; 0")
+
 -- Press: borrow the nav keys, then let the macro run. Release: give them
 -- back, and do nothing else.
 ns.HOLD_SNIPPET = [[
   if down then
     owner:ClearBindings()
     for i = 1, owner:GetAttribute("nk-n") or 0 do
-      owner:SetBinding(true, owner:GetAttribute("nk" .. i), owner:GetAttribute("nc" .. i))
+      local key, command = owner:GetAttribute("nk" .. i), owner:GetAttribute("nc" .. i)
+      if command == "BACK" then
+        owner:SetBindingClick(true, key, "TargetpadBack")
+      else
+        owner:SetBinding(true, key, command)
+      end
     end
     owner:SetAttribute("state", "held")
     return
@@ -36,7 +49,7 @@ ns.HOLD_SNIPPET = [[
 SecureHandlerWrapScript(hold, "OnClick", ctl, ns.HOLD_SNIPPET)
 
 -- The keys the controller borrows while you hold, and the game command each
--- one runs. The arrow keys always step too.
+-- one runs (BACK clicks the back button). The arrow keys always step too.
 function ns.navKeys()
   local base = ({ dpad = "PADD", rstick = "PADRSTICK", lstick = "PADLSTICK" })[ns.db and ns.db.nav] or "PADD"
   local list = {}
@@ -47,9 +60,9 @@ function ns.navKeys()
     end
   end
   add(base .. "RIGHT", "TARGETNEARESTENEMY")
-  add(base .. "LEFT", "TARGETPREVIOUSENEMY")
+  add(base .. "LEFT", "BACK")
   add("RIGHT", "TARGETNEARESTENEMY")
-  add("LEFT", "TARGETPREVIOUSENEMY")
+  add("LEFT", "BACK")
   return list
 end
 

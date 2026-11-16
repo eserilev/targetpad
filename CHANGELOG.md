@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- With no enemy targeted, stepping either way picks the nearest enemy, like Tab.
+
 ## 0.1.1
 
 - Fix: stepping with a stick did nothing. Targetpad now turns on the game's stick-as-buttons setting.

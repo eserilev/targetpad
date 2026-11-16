@@ -23,7 +23,12 @@ ns.TEST_PRESS = [[
   local owner = self
   owner:ClearBindings()
   for i = 1, owner:GetAttribute("nk-n") or 0 do
-    owner:SetBinding(true, owner:GetAttribute("nk" .. i), owner:GetAttribute("nc" .. i))
+    local key, command = owner:GetAttribute("nk" .. i), owner:GetAttribute("nc" .. i)
+    if command == "BACK" then
+      owner:SetBindingClick(true, key, "TargetpadBack")
+    else
+      owner:SetBinding(true, key, command)
+    end
   end
   owner:SetAttribute("state", "held")
 ]]
@@ -61,7 +66,11 @@ function ns.selfTest()
       bound(navs[1][1]) == "TARGETNEARESTENEMY",
       navs[1][1] .. "=" .. bound(navs[1][1])
     )
-    check("previous steps back", bound(navs[5][1]) == "TARGETPREVIOUSENEMY", navs[5][1] .. "=" .. bound(navs[5][1]))
+    check(
+      "previous steps back",
+      bound(navs[5][1]) == "CLICK TargetpadBack:LeftButton",
+      navs[5][1] .. "=" .. bound(navs[5][1])
+    )
     check("the arrow keys step too", bound("RIGHT") == "TARGETNEARESTENEMY", bound("RIGHT"))
     SecureHandlerExecute(ns.ctl, ns.TEST_RELEASE)
     check("letting go hides the arrow", not ns.isHeld())

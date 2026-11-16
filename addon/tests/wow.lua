@@ -639,6 +639,9 @@ function M.new()
       if not (t and t.hostile and not t.dead) then
         W.command("TARGETNEARESTENEMY")
       end
+    elseif text == "/targetenemy [harm,nodead] 1; 0" then
+      local t = W.units.target
+      W.command((t and t.hostile and not t.dead) and "TARGETPREVIOUSENEMY" or "TARGETNEARESTENEMY")
     end
   end
   -- The player's own bindings (the game's Key Bindings menu).
