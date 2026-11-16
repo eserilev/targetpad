@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.2
 
 - With no enemy targeted, stepping either way picks the nearest enemy, like Tab.
 
